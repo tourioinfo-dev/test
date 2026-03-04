@@ -1,0 +1,121 @@
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Home, Compass, Sparkles, Map, User, MessageCircle, Briefcase } from "lucide-react";
+import ChatAssistant from "@/components/chat/ChatAssistant";
+
+const navItems = [
+  { label: "Home", icon: Home, page: "Home" },
+  { label: "Explore", icon: Compass, page: "Explore" },
+  { label: "Plan", icon: Sparkles, page: "AIPlannerPage" },
+  { label: "My Trips", icon: Briefcase, page: "MyTrips" },
+  { label: "Profile", icon: User, page: "Profile" },
+];
+
+export default function Layout({ children, currentPageName }) {
+  const [theme, setTheme] = useState("light");
+  const [chatOpen, setChatOpen] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("tourio-theme") || "light";
+    setTheme(saved);
+    document.documentElement.classList.toggle("dark", saved === "dark");
+  }, []);
+
+  const isActive = (page) => currentPageName === page;
+
+  return (
+    <div className={`min-h-screen tourio-bg ${theme} flex flex-col`}>
+      <style>{`
+        :root {
+          --bg-primary: #FAFAF8;
+          --bg-secondary: #F5F3EE;
+          --text-primary: #1A1A1A;
+          --text-secondary: #6B6B6B;
+          --accent: #FF6B35;
+          --accent-light: #FF8C5A;
+          --accent-soft: #FFF0EB;
+          --card-bg: #FFFFFF;
+          --border: #E8E5DE;
+          --shadow: rgba(0,0,0,0.06);
+        }
+        .dark {
+          --bg-primary: #0F0F0F;
+          --bg-secondary: #1A1A1A;
+          --text-primary: #F5F5F5;
+          --text-secondary: #A0A0A0;
+          --accent: #FF6B35;
+          --accent-soft: #2A1A12;
+          --card-bg: #1E1E1E;
+          --border: #2A2A2A;
+          --shadow: rgba(0,0,0,0.3);
+        }
+      `}</style>
+
+      <main className="flex-1 pb-20 md:pb-0 md:ml-0">
+        {children}
+      </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden tourio-card border-t tourio-border" style={{boxShadow: '0 -4px 24px var(--shadow)'}}>
+        <div className="flex items-center justify-around px-2 py-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.page);
+            return (
+              <Link
+                key={item.page}
+                to={createPageUrl(item.page)}
+                className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200"
+                style={{
+                  color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                  background: active ? 'var(--accent-soft)' : 'transparent'
+                }}
+              >
+                <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
+                <span className="text-[10px] font-medium">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Desktop Side Nav */}
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 flex-col items-center py-8 gap-6 z-50 tourio-card border-r tourio-border">
+        <div className="w-10 h-10 hero-gradient rounded-xl flex items-center justify-center mb-4">
+          <span className="text-white font-bold text-sm">T</span>
+        </div>
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.page);
+          return (
+            <Link
+              key={item.page}
+              to={createPageUrl(item.page)}
+              className="flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-200"
+              title={item.label}
+              style={{
+                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                background: active ? 'var(--accent-soft)' : 'transparent'
+              }}
+            >
+              <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+              <span className="text-[9px] font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Chat Bubble */}
+      <button
+        onClick={() => setChatOpen(true)}
+        className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-40 w-14 h-14 hero-gradient rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+        style={{boxShadow: '0 8px 24px rgba(255,107,53,0.4)'}}
+      >
+        <MessageCircle size={24} className="text-white" />
+      </button>
+
+      {chatOpen && <ChatAssistant onClose={() => setChatOpen(false)} />}
+    </div>
+  );
+}
